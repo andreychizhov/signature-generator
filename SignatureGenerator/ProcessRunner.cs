@@ -100,7 +100,9 @@ namespace SignatureGenerator
 
                 if (dequeueResult)
                 {
-                    Console.WriteLine("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
+                    // Console.WriteLine("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
+                    //     item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
+                    Console.WriteLine("{0,5} : {1}",
                         item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
                 }
                 else if (_resetEvent.IsSet)

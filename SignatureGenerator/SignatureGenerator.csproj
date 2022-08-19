@@ -38,6 +38,7 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Configuration.cs" />
         <Compile Include="ConfigurationProvider.cs" />
         <Compile Include="HashHelper.cs" />
         <Compile Include="ProcessRunner.cs" />
