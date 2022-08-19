@@ -15,12 +15,18 @@ namespace SignatureGenerator
         
         public static void Main(string[] args)
         {
+            var paramValidator = new InputParametersValidator();
+            if (!paramValidator.TryGetConfiguration(args, out var param))
+            {
+                return;
+            }
+
             Console.WriteLine("Calculating signature");
             var sw = new Stopwatch();
             sw.Start();
 
             var prod = new Thread(Produce);
-            prod.Start();
+            prod.Start(param);
 
             var consumersCount = Environment.ProcessorCount;
             var consumerPool = new List<Thread>(consumersCount);
@@ -39,22 +45,26 @@ namespace SignatureGenerator
 
             sw.Stop();
             Console.WriteLine("Total time: {0}", sw.Elapsed);
-            //Console.ReadKey();
         }
 
-        public static void Produce()
+        public static void Produce(object data)
         {
-            var fileName = @"d:\Video\durak_2014.avi";
-            var counter = 1;
-            
-            foreach (var block in FileHelper.ReadFile(fileName))
+            if (data is CommandLineParameters p)
             {
-                _workingQueue.Enqueue(new QueueWorkItem(counter, block));
-                counter++;
+                var counter = 1;
+            
+                foreach (var block in FileHelper.ReadFileByBlock(p.FilePath, p.BlockSize))
+                {
+                    _workingQueue.Enqueue(new QueueWorkItem(counter, block));
+                    counter++;
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Invalid parameter data", nameof(data));
             }
             
             _resetEvent.Set();
-            Console.WriteLine("Queue filled by {0} elements", counter);
         }
 
         public static void Consume()
