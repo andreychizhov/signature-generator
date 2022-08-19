@@ -1,20 +1,20 @@
 ﻿namespace SignatureGenerator
 {
-    public class InputParametersValidator
+    public class ConfigurationProvider
     {
-        public bool TryGetConfiguration(string[] args, out CommandLineParameters parameters)
+        public bool TryGetFromStandardInput(string[] args, out Configuration parameters)
         {
             var fileName = @"d:\Video\durak_2014.avi";
             const int MAX_BUFFER = 1024 * 1024;
             
-            parameters = new CommandLineParameters(fileName, MAX_BUFFER);
+            parameters = new Configuration(fileName, MAX_BUFFER);
             return true;
         }
-}
+    }
 
-    public readonly struct CommandLineParameters
+    public readonly struct Configuration
     {
-        public CommandLineParameters(string filePath, int blockSize)
+        public Configuration(string filePath, int blockSize)
         {
             FilePath = filePath;
             BlockSize = blockSize;

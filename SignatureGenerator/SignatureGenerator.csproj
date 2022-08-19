@@ -38,9 +38,9 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="InputParametersValidator.cs" />
-        <Compile Include="FileHelper.cs" />
+        <Compile Include="ConfigurationProvider.cs" />
         <Compile Include="HashHelper.cs" />
+        <Compile Include="ProcessRunner.cs" />
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="QueueWorkItem.cs" />
