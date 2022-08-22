@@ -8,18 +8,18 @@ namespace SignatureGenerator
         public static void Main(string[] args)
         {
             var configurationProvider = new ConfigurationProvider();
-            using (var runner = new ProcessRunner())
+            if (!configurationProvider.TryGetFromStandardInput(args, out var config))
             {
-                if (!configurationProvider.TryGetFromStandardInput(args, out var config))
-                {
-                    return;
-                }
-
+                return;
+            }
+            
+            using (var runner = new ProcessRunner(config))
+            {
                 Console.WriteLine("Calculating signature...");
                 var sw = new Stopwatch();
                 sw.Start();
 
-                runner.Run(config);
+                runner.Run();
 
                 sw.Stop();
                 Console.WriteLine("Total time: {0}", sw.Elapsed);

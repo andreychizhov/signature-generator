@@ -9,13 +9,13 @@ namespace SignatureGenerator
     {
         public bool TryGetFromStandardInput(string[] args, out Configuration parameters)
         {
-            var config = new Configuration();
+            var config = new Configuration { BlockSize = Units.MiB };
             if (args.Length == 0)
             {
                 Console.WriteLine(@"Usage: please specify path to file and block size (1 MiB is a default)
 
 --file, -f - path to file
---block-size, -b size of block for calculating hash");
+--block-size, -b size of block in bytes for calculating hash");
                 parameters = config;
                 return false;
             }
@@ -33,7 +33,7 @@ namespace SignatureGenerator
                 if (args[i].Equals("--file", StringComparison.OrdinalIgnoreCase) ||
                     args[i].Equals("-f", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (IsValidFilename(args[i + 1]))
+                    if (args.Length >= i + 1 && IsValidFilename(args[i + 1]))
                     {
                         config.FilePath = args[i + 1];
                     }
@@ -48,13 +48,18 @@ namespace SignatureGenerator
                 if (args[i].Equals("--block-size", StringComparison.OrdinalIgnoreCase) ||
                     args[i].Equals("-b", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (int.TryParse(args[i + 1], out var bs))
+                    if (args.Length >= i + 1 && int.TryParse(args[i + 1], out var bs))
                     {
+                        if (bs <= Units.KiB)
+                        {
+                            bs = Units.KiB;
+                        }
+
                         config.BlockSize = bs;
                     }
                     else
                     {
-                        config.BlockSize = 1024 * 1024;
+                        config.BlockSize = Units.MiB;
                         Console.WriteLine("Block size not specified or incorrect, the default size 1 MiB will we used");
                     }
                 }

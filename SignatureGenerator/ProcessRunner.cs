@@ -9,23 +9,29 @@ namespace SignatureGenerator
     public class ProcessRunner : IDisposable
     {
         private static readonly int ConsumersCount = Environment.ProcessorCount;
-        private const int MaxBufferSize = 1024 * 1024; //1MB 
+        private const int MaxBufferSize = Units.MiB;
 
-        private readonly ConcurrentQueue<QueueWorkItem> _workingQueue;
+        private readonly BlockingCollection<QueueWorkItem> _workingQueue;
         private readonly ManualResetEventSlim _resetEvent;
         private readonly CountdownEvent _countdownEvent;
 
-        public ProcessRunner()
+        private readonly Configuration _configuration;
+
+        public ProcessRunner(Configuration config)
         {
-            _workingQueue = new ConcurrentQueue<QueueWorkItem>();
+            _configuration = config;
+
+            var queueUpperLimit = MaxBufferSize * 200 / config.BlockSize;
+
+            _workingQueue = new BlockingCollection<QueueWorkItem>(queueUpperLimit);
             _resetEvent = new ManualResetEventSlim(false);
             _countdownEvent = new CountdownEvent(ConsumersCount);
         }
 
-        public void Run(Configuration config)
+        public void Run()
         {
             var prod = new Thread(Produce);
-            prod.Start(config);
+            prod.Start(_configuration);
 
             var consumerPool = new List<Thread>(ConsumersCount);
             for (var i = 0; i < ConsumersCount; i++)
@@ -63,9 +69,9 @@ namespace SignatureGenerator
                         {
                             var resultBuffer = new byte[bufferSize];
                             buffer.CopyTo(resultBuffer, 0);
-                    
-                            _workingQueue.Enqueue(new QueueWorkItem(counter, resultBuffer));
-                            
+
+                            _workingQueue.Add(new QueueWorkItem(counter, resultBuffer));
+
                             counter++;
                         }
                     }
@@ -81,14 +87,17 @@ namespace SignatureGenerator
                     {
                         Console.WriteLine($"Unknown Exception: {e.Message}\n\n{e.StackTrace}");
                     }
+                    finally
+                    {
+                        _workingQueue.CompleteAdding();
+                        _resetEvent.Set();
+                    }
                 }
             }
             else
             {
                 Console.WriteLine("Invalid configuration data");
             }
-            
-            _resetEvent.Set();
         }
 
         private void Consume()
@@ -96,7 +105,7 @@ namespace SignatureGenerator
             var spinWait = new SpinWait();
             while (true)
             {
-                var dequeueResult = _workingQueue.TryDequeue(out var item);
+                var dequeueResult = _workingQueue.TryTake(out var item);
 
                 if (dequeueResult)
                 {
