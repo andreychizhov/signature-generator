@@ -7,22 +7,23 @@ namespace SignatureGenerator
     {
         public static void Main(string[] args)
         {
+            var logger = new ConsoleLogger();
             var configurationProvider = new ConfigurationProvider();
             if (!configurationProvider.TryGetFromStandardInput(args, out var config))
             {
                 return;
             }
             
-            using (var runner = new ProcessRunner(config))
+            using (var runner = new ProcessRunner(config, logger))
             {
-                Console.WriteLine("Calculating signature...");
+                logger.Write("Calculating signature...");
                 var sw = new Stopwatch();
                 sw.Start();
 
                 runner.Run();
 
                 sw.Stop();
-                Console.WriteLine("Total time: {0}", sw.Elapsed);
+                logger.Write("Total time: {0}", sw.Elapsed);
             }
         }
     }

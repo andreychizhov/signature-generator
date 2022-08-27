@@ -7,10 +7,12 @@ namespace SignatureGenerator
     public class Consumer
     {
         private readonly BlockingCollection<QueueWorkItem> _workingQueue;
+        private readonly ILogger _logger;
 
-        public Consumer(BlockingCollection<QueueWorkItem> workingQueue)
+        public Consumer(BlockingCollection<QueueWorkItem> workingQueue, ILogger logger)
         {
             _workingQueue = workingQueue;
+            _logger = logger;
         }
 
         public void Consume(object callback)
@@ -34,9 +36,9 @@ namespace SignatureGenerator
 
                 if (dequeueResult)
                 {
-                    // Console.WriteLine("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
+                    // _logger.Write("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
                     //     item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
-                    Console.WriteLine("{0,5} : {1}",
+                    _logger.Write("{0,5} : {1}",
                         item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
                 }
                 else if (_workingQueue.IsAddingCompleted)

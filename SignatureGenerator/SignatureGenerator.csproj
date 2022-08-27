@@ -42,6 +42,7 @@
         <Compile Include="ConfigurationProvider.cs" />
         <Compile Include="Consumer.cs" />
         <Compile Include="HashHelper.cs" />
+        <Compile Include="ILogger.cs" />
         <Compile Include="ProcessRunner.cs" />
         <Compile Include="Producer.cs" />
         <Compile Include="Program.cs" />
