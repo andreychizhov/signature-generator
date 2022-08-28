@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 using System.Threading;
 
 namespace SignatureGenerator
@@ -31,31 +32,38 @@ namespace SignatureGenerator
         private void Consume(Action onCompletion)
         {
             var spinWait = new SpinWait();
-            while (true)
+            var sha256 = SHA256.Create();
+            
+            try
             {
-                var dequeueResult = _workingQueue.TryTake(out var item);
+                while (true)
+                {
+                    var dequeueResult = _workingQueue.TryTake(out var item);
 
-                if (dequeueResult)
-                {
-                    // _logger.Write("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
-                    //     item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
-                    _logger.Write("{0,5} : {1}",
-                        item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
-                    
-                    ArrayPool<byte>.Shared.Return(item.BlockData);
-                }
-                else if (_workingQueue.IsAddingCompleted)
-                {
-                    break;
-                }
-                else
-                {
-                    spinWait.SpinOnce();
+                    if (dequeueResult)
+                    {
+                        // _logger.Write("Worker: {0,3} | Block: {1,5} | Hash: {2}", Thread.CurrentThread.ManagedThreadId,
+                        //     item.BlockNumber, sha256.CalculateSha256(item.BlockData));
+                        _logger.Write("{0,5} : {1}",
+                            item.BlockNumber, sha256.CalculateSha256(item.BlockData));
+
+                        ArrayPool<byte>.Shared.Return(item.BlockData);
+                    }
+                    else if (_workingQueue.IsAddingCompleted)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        spinWait.SpinOnce();
+                    }
                 }
             }
-
-            onCompletion();
+            finally
+            {
+                sha256.Dispose();
+                onCompletion();
+            }
         }
-
     }
 }
