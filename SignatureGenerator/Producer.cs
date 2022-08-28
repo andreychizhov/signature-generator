@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO;
 
@@ -27,16 +28,19 @@ namespace SignatureGenerator
             using (var fs = File.Open(_config.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var bs = new BufferedStream(fs))
             {
-                var buffer = new byte[bufferSize];
                 var counter = 1;
                 int bytesRead;
 
                 try
                 {
-                    while ((bytesRead = bs.Read(buffer, 0, bufferSize)) != 0)
+                    while (true)
                     {
-                        var resultBuffer = new byte[bufferSize];
-                        buffer.CopyTo(resultBuffer, 0);
+                        var resultBuffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+                        if ((bytesRead = bs.Read(resultBuffer, 0, bufferSize)) == 0)
+                        {
+                            break;
+                        }
 
                         _workingQueue.Add(new QueueWorkItem(counter, resultBuffer));
 

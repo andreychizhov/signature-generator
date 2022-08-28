@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Threading;
 
@@ -40,6 +41,8 @@ namespace SignatureGenerator
                     //     item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
                     _logger.Write("{0,5} : {1}",
                         item.BlockNumber, HashHelper.CalculateSha256(item.BlockData));
+                    
+                    ArrayPool<byte>.Shared.Return(item.BlockData);
                 }
                 else if (_workingQueue.IsAddingCompleted)
                 {
