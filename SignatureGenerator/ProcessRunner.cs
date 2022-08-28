@@ -21,7 +21,7 @@ namespace SignatureGenerator
             _configuration = config;
             _logger = logger;
 
-            var queueUpperLimit = MaxBufferSize * 200 / config.BlockSize;
+            var queueUpperLimit = MaxBufferSize * 100 / config.BlockSize;
 
             _workingQueue = new BlockingCollection<QueueWorkItem>(queueUpperLimit);
             _countdownEvent = new CountdownEvent(ConsumersCount);
